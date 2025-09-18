@@ -21,7 +21,7 @@ if not all([DISCORD_BOT_TOKEN, N8N_WEBHOOK_URL]):
 
 # --- Bot Setup ---
 # Intents are still needed for the bot to function.
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 # A CommandTree is used to manage and register slash commands.
 tree = app_commands.CommandTree(client)
@@ -46,7 +46,7 @@ async def on_ready():
 
 
 # --- Application Command Definition ---
-@tree.command(name="chat", description="Send a prompt to the AI assistant.", guild=DISCORD_GUILD_ID)
+@tree.command(name="chat", description="Send a prompt to the AI assistant.")
 # Add the parameters your command will take. 'prompt' will be a required text field.
 @app_commands.describe(prompt="The prompt for the AI agent.")
 async def chat_command(interaction: discord.Interaction, prompt: str):
