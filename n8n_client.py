@@ -10,14 +10,16 @@ class N8nClient:
             raise ValueError("Webhook URL cannot be empty.")
         self.webhook_url = webhook_url
 
-    def send_prompt(self, prompt: str, author_id: int, author_name: str) -> dict:
+    def send_prompt(self, prompt: str, author_id: int, author_name: str, command: str, channel_id: int) -> dict:
         """
         Sends a prompt to the n8n workflow and returns the response.
         """
         payload = {
             'prompt': prompt,
             'author_id': author_id,
-            'author_name': author_name
+            'author_name': author_name,
+            'channel_id': channel_id,
+            'command': command
         }
         
         try:
@@ -28,6 +30,31 @@ class N8nClient:
                 return response.json()
             except requests.exceptions.JSONDecodeError:
                 return {'response': "Received a non-JSON response from the workflow."}
+
+        except requests.exceptions.RequestException as e:
+            print(f'Error connecting to n8n webhook: {e}')
+            return {'response': 'Sorry, I couldn\'t connect to the AI workflow. Please try again later.'}
+        
+    def send_prompt_image(self, prompt: str, author_id: int, author_name: str, command: str, channel_id: int) -> dict:
+        """
+        Sends a prompt to the n8n workflow and returns the response.
+        """
+        payload = {
+            'prompt': prompt,
+            'author_id': author_id,
+            'author_name': author_name,
+            'channel_id': channel_id,
+            'command': command
+        }
+        
+        try:
+            response = requests.post(self.webhook_url, json=payload, timeout=300)
+            response.raise_for_status()
+            
+            try:
+                return response.content
+            except requests.exceptions.JSONDecodeError:
+                return {'response': "Received a Binary response from the workflow."}
 
         except requests.exceptions.RequestException as e:
             print(f'Error connecting to n8n webhook: {e}')

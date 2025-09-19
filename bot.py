@@ -2,6 +2,8 @@ import discord
 from discord import app_commands
 from config import config
 from n8n_client import n8n_client
+import base64
+import io
 
 class AIBot(discord.Client):
     """
@@ -47,7 +49,9 @@ def create_bot() -> AIBot:
             response_data = n8n_client.send_prompt(
                 prompt=prompt,
                 author_id=interaction.user.id,
-                author_name=interaction.user.name
+                author_name=interaction.user.name,
+                channel_id=interaction.channel.id,
+                command="/chat"
             )
             
             agent_output = response_data.get('response', 'The workflow ran but returned no response.')
@@ -64,6 +68,34 @@ def create_bot() -> AIBot:
 
         except Exception as e:
             print(f'An unexpected error occurred in chat_command: {e}')
+            await interaction.followup.send('An unexpected error occurred. Please check the bot logs for more details.')
+
+    @bot.tree.command(name="image", description="Send a prompt to generate an image.")
+    @app_commands.describe(prompt="The prompt for the image generation.")
+    async def image_command(interaction: discord.Interaction, prompt: str):
+        """
+        Handler for the /image slash command.
+        """
+        await interaction.response.defer()
+
+        try:
+            print(f"Received image prompt from {interaction.user.name}: \"{prompt}\"")
+            
+            response_data = n8n_client.send_prompt_image(
+                prompt=prompt,
+                author_id=interaction.user.id,
+                author_name=interaction.user.name,
+                channel_id=interaction.channel.id,
+                command="/image"
+            )
+
+            image_bytes = response_data
+            image_file = io.BytesIO(image_bytes)
+            discord_file = discord.File(fp=image_file, filename="generated_image.png")
+            await interaction.followup.send(f"Here is your generated image for the prompt: \"{prompt}\"", file=discord_file)
+
+        except Exception as e:
+            print(f'An unexpected error occurred in image_command: {e}')
             await interaction.followup.send('An unexpected error occurred. Please check the bot logs for more details.')
 
     return bot
