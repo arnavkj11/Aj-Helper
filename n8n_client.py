@@ -59,13 +59,14 @@ class N8nClient:
         except requests.exceptions.RequestException as e:
             print(f'Error connecting to n8n webhook: {e}')
             return {'response': 'Sorry, I couldn\'t connect to the AI workflow. Please try again later.'}
-        
+
     def send_prompt_stock(self, prompt: str, author_id: int, author_name: str, command: str, channel_id: int) -> dict:
         """
         Sends a prompt to the n8n workflow and returns the response.
         """
         payload = {
             'prompt': prompt,
+            #'exchange': exchange,
             'author_id': author_id,
             'author_name': author_name,
             'channel_id': channel_id,

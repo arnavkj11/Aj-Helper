@@ -99,7 +99,7 @@ def create_bot() -> AIBot:
             await interaction.followup.send('An unexpected error occurred. Please check the bot logs for more details.')
 
     @bot.tree.command(name="stock", description="Get stock information.")
-    @app_commands.describe(prompt="The stock symbol or query.")
+    @app_commands.describe(prompt="The stock symbol and the name of exchange.")
     async def stock_command(interaction: discord.Interaction, prompt: str):
         """
         Handler for the /stock slash command.
@@ -111,6 +111,7 @@ def create_bot() -> AIBot:
             
             response_data = n8n_client.send_prompt_stock(
                 prompt=prompt,
+                #exchange=exchange,
                 author_id=interaction.user.id,
                 author_name=interaction.user.name,
                 channel_id=interaction.channel.id,
