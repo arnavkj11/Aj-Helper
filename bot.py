@@ -98,4 +98,39 @@ def create_bot() -> AIBot:
             print(f'An unexpected error occurred in image_command: {e}')
             await interaction.followup.send('An unexpected error occurred. Please check the bot logs for more details.')
 
+    @bot.tree.command(name="stock", description="Get stock information.")
+    @app_commands.describe(prompt="The stock symbol or query.")
+    async def stock_command(interaction: discord.Interaction, prompt: str):
+        """
+        Handler for the /stock slash command.
+        """
+        await interaction.response.defer()
+
+        try:
+            print(f"Received stock prompt from {interaction.user.name}: \"{prompt}\"")
+            
+            response_data = n8n_client.send_prompt_stock(
+                prompt=prompt,
+                author_id=interaction.user.id,
+                author_name=interaction.user.name,
+                channel_id=interaction.channel.id,
+                command="/stock"
+            )
+            
+            agent_output = response_data.get('response', 'The workflow ran but returned no response.')
+
+            if len(agent_output) > 2000:
+                chunks = [agent_output[i:i + 2000] for i in range(0, len(agent_output), 2000)]
+                for i, chunk in enumerate(chunks):
+                    if i == 0:
+                        await interaction.followup.send(chunk)
+                    else:
+                        await interaction.channel.send(chunk)
+            else:
+                await interaction.followup.send(agent_output)
+
+        except Exception as e:
+            print(f'An unexpected error occurred in stock_command: {e}')
+            await interaction.followup.send('An unexpected error occurred. Please check the bot logs for more details.')
+
     return bot
