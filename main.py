@@ -13,5 +13,5 @@ def main():
         print(e)
 
 if __name__ == "__main__":
-    #keep_alive()
+    keep_alive()
     main()
