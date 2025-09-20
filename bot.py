@@ -134,4 +134,43 @@ def create_bot() -> AIBot:
             print(f'An unexpected error occurred in stock_command: {e}')
             await interaction.followup.send('An unexpected error occurred. Please check the bot logs for more details.')
 
+    @bot.tree.command(name="assistant", description="Send a private prompt to your personal AI assistant.")
+    @app_commands.describe(prompt="The prompt for your personal AI assistant.")
+    async def assistant_command(interaction: discord.Interaction, prompt: str):
+        """
+        Handler for the /assistant slash command.
+        """
+        await interaction.response.defer()
+
+        try:
+            if interaction.user.id != config.OWNER_ID:
+                await interaction.followup.send("You do not have permission to use this command.")
+                return
+
+            print(f"Received personal assistant prompt from {interaction.user.name}: \"{prompt}\"")
+            
+            response_data = n8n_client.send_prompt(
+                prompt=prompt,
+                author_id=interaction.user.id,
+                author_name=interaction.user.name,
+                channel_id=interaction.channel.id,
+                command="/assistant"
+            )
+            
+            agent_output = response_data.get('response', 'The workflow ran but returned no response.')
+
+            if len(agent_output) > 2000:
+                chunks = [agent_output[i:i + 2000] for i in range(0, len(agent_output), 2000)]
+                for i, chunk in enumerate(chunks):
+                    if i == 0:
+                        await interaction.followup.send(chunk)
+                    else:
+                        await interaction.channel.send(chunk)
+            else:
+                await interaction.followup.send(agent_output)
+
+        except Exception as e:
+            print(f'An unexpected error occurred in assistant_command: {e}')
+            await interaction.followup.send('An unexpected error occurred. Please check the bot logs for more details.')
+
     return bot
